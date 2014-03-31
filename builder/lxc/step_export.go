@@ -25,7 +25,7 @@ func (s *stepExport) Run(state multistep.StateBag) multistep.StepAction {
 
 	commands := make([][]string, 4)
 	commands[0] = []string{
-		"tar", "-C", containerDir, "--numeric-owner", "-czf", outputPath, "./rootfs",
+		"tar", "-C", containerDir, "--numeric-owner", "--anchored", "--exclude=./rootfs/dev/log", "-czf", outputPath, "./rootfs",
 	}
 	commands[1] = []string{
 		"wget", fmt.Sprintf("https://raw.githubusercontent.com/fgrehm/vagrant-lxc-base-boxes/master/conf/%s", config.Distribution),

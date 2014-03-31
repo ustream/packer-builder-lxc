@@ -20,6 +20,10 @@ func (s *stepLxcCreate) Run(state multistep.StateBag) multistep.StepAction {
 
 	rootfs := fmt.Sprintf("/var/lib/lxc/%s/rootfs", name)
 
+	if config.PackerForce {
+		s.Cleanup(state)
+	}
+
 	command := []string{
 		fmt.Sprintf("MIRROR=%s", config.MirrorUrl), "lxc-create",
 			"-n", fmt.Sprintf("%s", name), "-t", config.Distribution, "--", "-r", config.Release,
