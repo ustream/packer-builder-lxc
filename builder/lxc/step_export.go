@@ -21,19 +21,20 @@ func (s *stepExport) Run(state multistep.StateBag) multistep.StepAction {
 
 	containerDir := fmt.Sprintf("/var/lib/lxc/%s", name)
 	outputPath := filepath.Join(config.OutputDir, "rootfs.tar.gz")
+	templateFile := filepath.Join(config.OutputDir, "lxc-config")
 
 	commands := make([][]string, 4)
 	commands[0] = []string{
 		"tar", "-C", containerDir, "--numeric-owner", "-czf", outputPath, "./rootfs",
 	}
-	commands[2] = []string{
+	commands[1] = []string{
 		"wget", fmt.Sprintf("https://raw.githubusercontent.com/fgrehm/vagrant-lxc-base-boxes/master/conf/%s", config.Distribution),
-		"-O", filepath.Join(config.OutputDir, "lxc-config"),
+		"-O", templateFile,
+	}
+	commands[2] = []string{
+		"chmod", "+x", templateFile,
 	}
 	commands[3] = []string{
-		"chmod", "+x", filepath.Join(config.OutputDir, "lxc-template"),
-	}
-	commands[4] = []string{
 		"sh", "-c", "chown $USER:`id -gn` " + filepath.Join(config.OutputDir, "*"),
 	}
 
