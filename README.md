@@ -22,7 +22,6 @@ Example builder config
       "type": "lxc",
       "distribution": "debian",
       "release": "wheezy",
-      "mirror_url": "http://ftp.hu.debian.org/debian/",
-      "security_mirror_url": "http://security.debian.org/"
+      "mirror_url": "http://ftp.hu.debian.org/debian/"
     }
 ```
