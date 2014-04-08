@@ -25,7 +25,7 @@ func (s *stepExport) Run(state multistep.StateBag) multistep.StepAction {
 
 	commands := make([][]string, 5)
 	commands[0] = []string{
-		"lxc-halt", "--name", name,
+		"lxc-stop", "--name", name,
 	}
 	commands[1] = []string{
 		"tar", "-C", containerDir, "--numeric-owner", "--anchored", "--exclude=./rootfs/dev/log", "-czf", outputPath, "./rootfs",
