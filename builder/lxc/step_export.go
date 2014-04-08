@@ -31,8 +31,8 @@ func (s *stepExport) Run(state multistep.StateBag) multistep.StepAction {
 		"tar", "-C", containerDir, "--numeric-owner", "--anchored", "--exclude=./rootfs/dev/log", "-czf", outputPath, "./rootfs",
 	}
 	commands[2] = []string{
-		"wget", fmt.Sprintf("https://raw.githubusercontent.com/fgrehm/vagrant-lxc-base-boxes/master/conf/%s", config.Distribution),
-		"-O", templateFile,
+		"curl", "-o", templateFile,
+		fmt.Sprintf("https://raw.githubusercontent.com/fgrehm/vagrant-lxc-base-boxes/master/conf/%s", config.Distribution),
 	}
 	commands[3] = []string{
 		"chmod", "+x", templateFile,
