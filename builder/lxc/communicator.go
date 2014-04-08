@@ -12,18 +12,17 @@ import (
 	"syscall"
 )
 
-// Communicator is a special communicator that works by executing
-// commands locally but within a chroot.
-type Communicator struct {
-	Chroot     string
-	CmdWrapper CommandWrapper
+type LxcAttachCommunicator struct {
+	RootFs        string
+	ContainerName string
+	CmdWrapper    CommandWrapper
 }
 
-func (c *Communicator) Start(cmd *packer.RemoteCmd) error {
+func (c *LxcAttachCommunicator) Start(cmd *packer.RemoteCmd) error {
 
-	log.Printf("Executing chroot: %s %s", c.Chroot, cmd.Command)
+	log.Printf("Executing with lxc-attach in container: %s %s %s", c.ContainerName, c.RootFs, cmd.Command)
 	command, err := c.CmdWrapper(
-		fmt.Sprintf("sudo chroot %s /bin/sh -c \"%s\"", c.Chroot, cmd.Command))
+		fmt.Sprintf("lxc-attach --name %s -- /bin/sh -c \"%s\"", c.ContainerName, cmd.Command))
 	if err != nil {
 		return err
 	}
@@ -32,7 +31,7 @@ func (c *Communicator) Start(cmd *packer.RemoteCmd) error {
 	localCmd.Stdin = cmd.Stdin
 	localCmd.Stdout = cmd.Stdout
 	localCmd.Stderr = cmd.Stderr
-	log.Printf("Executing: %s %#v", localCmd.Path, localCmd.Args)
+	log.Printf("Executing lxc-attach: %s %#v", localCmd.Path, localCmd.Args)
 	if err := localCmd.Start(); err != nil {
 		return err
 	}
@@ -52,7 +51,7 @@ func (c *Communicator) Start(cmd *packer.RemoteCmd) error {
 		}
 
 		log.Printf(
-			"Chroot execution exited with '%d': '%s'",
+			"lxc-attach execution exited with '%d': '%s'",
 			exitStatus, cmd.Command)
 		cmd.SetExited(exitStatus)
 	}()
@@ -60,12 +59,12 @@ func (c *Communicator) Start(cmd *packer.RemoteCmd) error {
 	return nil
 }
 
-func (c *Communicator) Upload(dst string, r io.Reader) error {
-	dst = filepath.Join(c.Chroot, dst)
-	log.Printf("Uploading to chroot dir: %s", dst)
-	tf, err := ioutil.TempFile("", "packer-amazon-chroot")
+func (c *LxcAttachCommunicator) Upload(dst string, r io.Reader) error {
+	dst = filepath.Join(c.RootFs, dst)
+	log.Printf("Uploading to rootfs: %s", dst)
+	tf, err := ioutil.TempFile("", "packer-lxc-attach")
 	if err != nil {
-		return fmt.Errorf("Error preparing shell script: %s", err)
+		return fmt.Errorf("Error uploading file to rootfs: %s", err)
 	}
 	defer os.Remove(tf.Name())
 	io.Copy(tf, r)
@@ -78,11 +77,11 @@ func (c *Communicator) Upload(dst string, r io.Reader) error {
 	return ShellCommand(cpCmd).Run()
 }
 
-func (c *Communicator) UploadDir(dst string, src string, exclude []string) error {
+func (c *LxcAttachCommunicator) UploadDir(dst string, src string, exclude []string) error {
 	// TODO: remove any file copied if it appears in `exclude`
-	chrootDest := filepath.Join(c.Chroot, dst)
-	log.Printf("Uploading directory '%s' to '%s'", src, chrootDest)
-	cpCmd, err := c.CmdWrapper(fmt.Sprintf("cp -R %s* %s", src, chrootDest))
+	dest := filepath.Join(c.RootFs, dst)
+	log.Printf("Uploading directory '%s' to rootfs '%s'", src, dest)
+	cpCmd, err := c.CmdWrapper(fmt.Sprintf("cp -R %s %s", src, dest))
 	if err != nil {
 		return err
 	}
@@ -90,9 +89,9 @@ func (c *Communicator) UploadDir(dst string, src string, exclude []string) error
 	return ShellCommand(cpCmd).Run()
 }
 
-func (c *Communicator) Download(src string, w io.Writer) error {
-	src = filepath.Join(c.Chroot, src)
-	log.Printf("Downloading from chroot dir: %s", src)
+func (c *LxcAttachCommunicator) Download(src string, w io.Writer) error {
+	src = filepath.Join(c.RootFs, src)
+	log.Printf("Downloading from rootfs dir: %s", src)
 	f, err := os.Open(src)
 	if err != nil {
 		return err

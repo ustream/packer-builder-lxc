@@ -6,19 +6,21 @@ import (
 	"log"
 )
 
-// StepChrootProvision provisions the instance within a chroot.
-type StepChrootProvision struct {}
+// StepProvision provisions the instance within a chroot.
+type StepProvision struct {}
 
-func (s *StepChrootProvision) Run(state multistep.StateBag) multistep.StepAction {
+func (s *StepProvision) Run(state multistep.StateBag) multistep.StepAction {
 	hook := state.Get("hook").(packer.Hook)
+	config := state.Get("config").(*config)
 	mountPath := state.Get("mount_path").(string)
 	ui := state.Get("ui").(packer.Ui)
 	wrappedCommand := state.Get("wrappedCommand").(CommandWrapper)
 
 	// Create our communicator
-	comm := &Communicator{
-		Chroot:     mountPath,
-		CmdWrapper: wrappedCommand,
+	comm := &LxcAttachCommunicator{
+		ContainerName: config.ContainerName,
+		RootFs:        mountPath,
+		CmdWrapper:    wrappedCommand,
 	}
 
 	// Provision
@@ -31,4 +33,4 @@ func (s *StepChrootProvision) Run(state multistep.StateBag) multistep.StepAction
 	return multistep.ActionContinue
 }
 
-func (s *StepChrootProvision) Cleanup(state multistep.StateBag) {}
+func (s *StepProvision) Cleanup(state multistep.StateBag) {}

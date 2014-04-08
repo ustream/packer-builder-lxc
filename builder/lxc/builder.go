@@ -83,7 +83,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 	steps := []multistep.Step{
 		new(stepPrepareOutputDir),
 		new(stepLxcCreate),
-		new(StepChrootProvision),
+		new(StepProvision),
 		new(stepExport),
 	}
 
