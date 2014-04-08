@@ -22,7 +22,7 @@ func (c *LxcAttachCommunicator) Start(cmd *packer.RemoteCmd) error {
 
 	log.Printf("Executing with lxc-attach in container: %s %s %s", c.ContainerName, c.RootFs, cmd.Command)
 	command, err := c.CmdWrapper(
-		fmt.Sprintf("lxc-attach --name %s -- /bin/sh -c \"%s\"", c.ContainerName, cmd.Command))
+		fmt.Sprintf("sudo lxc-attach --name %s -- /bin/sh -c \"%s\"", c.ContainerName, cmd.Command))
 	if err != nil {
 		return err
 	}
@@ -73,6 +73,8 @@ func (c *LxcAttachCommunicator) Upload(dst string, r io.Reader) error {
 	if err != nil {
 		return err
 	}
+
+	log.Printf("Running copy command: %s", dst)
 
 	return ShellCommand(cpCmd).Run()
 }

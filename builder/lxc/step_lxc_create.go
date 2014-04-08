@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"log"
 	"strings"
+	"path/filepath"
 )
 
 type stepLxcCreate struct{}
@@ -18,24 +19,34 @@ func (s *stepLxcCreate) Run(state multistep.StateBag) multistep.StepAction {
 
 	name := config.ContainerName
 
-	rootfs := fmt.Sprintf("/var/lib/lxc/%s/rootfs", name)
+	// TODO: read from env
+	lxc_dir := "/var/lib/lxc"
+	rootfs := filepath.Join(lxc_dir, name, "rootfs")
 
 	if config.PackerForce {
 		s.Cleanup(state)
 	}
 
-	command := []string{
+	commands := make([][]string, 3)
+	commands[0] = []string{
 		fmt.Sprintf("MIRROR=%s", config.MirrorUrl), "lxc-create",
-			"-n", fmt.Sprintf("%s", name), "-t", config.Distribution, "--", "-r", config.Release,
+			"-n", name, "-t", config.Distribution, "--", "-r", config.Release,
 	}
+	// prevent tmp from being cleaned on boot, we put provisioning scripts there
+	// todo: wait for init to finish before moving on to provisioning instead of this
+	commands[1] = []string{"touch", filepath.Join(rootfs, "tmp", ".tmpfs")}
+	commands[2] = []string{"lxc-start", "-d", "--name", name}
 
 	ui.Say("Creating containter...")
-	err := s.SudoCommand(command...)
-	if err != nil {
-		err := fmt.Errorf("Error creating container: %s", err)
-		state.Put("error", err)
-		ui.Error(err.Error())
-		return multistep.ActionHalt
+	for _, command := range commands {
+		log.Printf("Executing sudo command: %#v", command)
+		err := s.SudoCommand(command...)
+		if err != nil {
+			err := fmt.Errorf("Error creating container: %s", err)
+			state.Put("error", err)
+			ui.Error(err.Error())
+			return multistep.ActionHalt
+		}
 	}
 
 	state.Put("mount_path", rootfs)
