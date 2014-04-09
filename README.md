@@ -1,7 +1,7 @@
 packer-builder-lxc
 ==========
 
-Lxc builder for packer, with working provisioning. At the moment chroot is used for provisioning, because lxc-attach is completely broken on debian to this date. An lxc-attach provisioner is planned for other distributions. Since the building process uses lxc-create it relies on your system's lxc templates, so results of building the same config my vary based on different host os distributions/releases.
+Lxc builder for packer, with working provisioning.
 
 Building
 ========
@@ -27,10 +27,23 @@ Add the executable to your packer config:
 Example builder config
 ======================
 ```
-   {
+    {
       "type": "lxc",
-      "distribution": "debian",
-      "release": "wheezy",
-      "mirror_url": "http://ftp.hu.debian.org/debian/"
+      "template_name": "debian",
+      "template_parameters": ["--arch", "amd64", "--release", "wheezy"],
+      "template_environment_vars": [
+        "MIRROR=http://http.debian.net/debian/"
+      ]
     }
 ```
+
+Example packer template
+=======================
+
+TODO
+
+Vagrant publisher
+=================
+
+The basebox format will be finalized in [vagrant-lxc](https://github.com/fgrehm/vagrant-lxc) 1.0.0,
+then we'll try to get a patch into packer to support this builder in the vagrant publisher.

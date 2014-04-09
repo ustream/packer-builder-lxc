@@ -14,7 +14,7 @@ import (
 type stepLxcCreate struct{}
 
 func (s *stepLxcCreate) Run(state multistep.StateBag) multistep.StepAction {
-	config := state.Get("config").(*config)
+	config := state.Get("config").(*Config)
 	ui := state.Get("ui").(packer.Ui)
 
 	name := config.ContainerName
@@ -28,10 +28,8 @@ func (s *stepLxcCreate) Run(state multistep.StateBag) multistep.StepAction {
 	}
 
 	commands := make([][]string, 3)
-	commands[0] = []string{
-		fmt.Sprintf("MIRROR=%s", config.MirrorUrl), "lxc-create",
-			"-n", name, "-t", config.Distribution, "--", "-r", config.Release,
-	}
+	commands[0] = append(config.TemplateConfig.EnvVars, []string{"lxc-create", "-n", name, "-t", config.TemplateConfig.Name, "--"}...)
+	commands[0] = append(commands[0], config.TemplateConfig.Parameters...)
 	// prevent tmp from being cleaned on boot, we put provisioning scripts there
 	// todo: wait for init to finish before moving on to provisioning instead of this
 	commands[1] = []string{"touch", filepath.Join(rootfs, "tmp", ".tmpfs")}
@@ -55,7 +53,7 @@ func (s *stepLxcCreate) Run(state multistep.StateBag) multistep.StepAction {
 }
 
 func (s *stepLxcCreate) Cleanup(state multistep.StateBag) {
-	config := state.Get("config").(*config)
+	config := state.Get("config").(*Config)
 	ui := state.Get("ui").(packer.Ui)
 
 	command := []string{

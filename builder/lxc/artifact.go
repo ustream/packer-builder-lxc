@@ -5,8 +5,6 @@ import (
 	"os"
 )
 
-// Artifact is the result of running the VirtualBox builder, namely a set
-// of files associated with the resulting machine.
 type Artifact struct {
 	dir string
 	f   []string

@@ -11,7 +11,7 @@ type StepProvision struct {}
 
 func (s *StepProvision) Run(state multistep.StateBag) multistep.StepAction {
 	hook := state.Get("hook").(packer.Hook)
-	config := state.Get("config").(*config)
+	config := state.Get("config").(*Config)
 	mountPath := state.Get("mount_path").(string)
 	ui := state.Get("ui").(packer.Ui)
 	wrappedCommand := state.Get("wrappedCommand").(CommandWrapper)

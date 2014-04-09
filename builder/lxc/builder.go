@@ -8,66 +8,26 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
-	"fmt"
 )
 
 // The unique ID for this builder
-const BuilderId = "mitchellh.lxc"
-
-type config struct {
-	common.PackerConfig `mapstructure:",squash"`
-
-	Distribution      string     `mapstructure:"distribution"`
-	Release           string     `mapstructure:"release"`
-	MirrorUrl         string     `mapstructure:"mirror_url"`
-	SecurityMirrorUrl string     `mapstructure:"security_mirror_url"`
-	OutputDir         string     `mapstructure:"output_directory"`
-	ContainerName     string     `mapstructure:"container_name"`
-	CommandWrapper    string     `mapstructure:"command_wrapper"`
-
-	tpl *packer.ConfigTemplate
-}
+const BuilderId = "ustream.lxc"
 
 type wrappedCommandTemplate struct {
 	Command string
 }
 
 type Builder struct {
-	config config
+	config *Config
 	runner multistep.Runner
 }
 
-
 func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
-	md, err := common.DecodeConfig(&b.config, raws...)
-	if err != nil {
-		return nil, err
-	}
-
-	b.config.tpl, err = packer.NewConfigTemplate()
-	if err != nil {
-		return nil, err
-	}
-	b.config.tpl.UserVars = b.config.PackerUserVars
-
-	// Accumulate any errors
-	errs := common.CheckUnusedConfig(md)
-
-	if b.config.OutputDir == "" {
-		b.config.OutputDir = fmt.Sprintf("output-%s", b.config.PackerBuildName)
-	}
-
-	if b.config.ContainerName == "" {
-		b.config.ContainerName = fmt.Sprintf("packer-%s", b.config.PackerBuildName)
-	}
-
-	if b.config.CommandWrapper == "" {
-		b.config.CommandWrapper = "{{.Command}}"
-	}
-
-	if errs != nil && len(errs.Errors) > 0 {
+	c, errs := NewConfig(raws...)
+	if errs != nil {
 		return nil, errs
 	}
+	b.config = c
 
 	return nil, nil
 }
@@ -89,7 +49,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 
 	// Setup the state bag
 	state := new(multistep.BasicStateBag)
-	state.Put("config", &b.config)
+	state.Put("config", b.config)
 	state.Put("cache", cache)
 	state.Put("hook", hook)
 	state.Put("ui", ui)

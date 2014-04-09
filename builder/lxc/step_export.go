@@ -9,21 +9,43 @@ import (
 	"log"
 	"strings"
 	"path/filepath"
+	"os"
+	"io"
 )
 
 type stepExport struct{}
 
 func (s *stepExport) Run(state multistep.StateBag) multistep.StepAction {
-	config := state.Get("config").(*config)
+	config := state.Get("config").(*Config)
 	ui := state.Get("ui").(packer.Ui)
 
 	name := config.ContainerName
 
 	containerDir := fmt.Sprintf("/var/lib/lxc/%s", name)
 	outputPath := filepath.Join(config.OutputDir, "rootfs.tar.gz")
-	templateFile := filepath.Join(config.OutputDir, "lxc-config")
+	configFilePath := filepath.Join(config.OutputDir, "lxc-config")
 
-	commands := make([][]string, 5)
+	configFile, err := os.Create(configFilePath)
+
+	if err != nil {
+		err := fmt.Errorf("Error creating config file: %s", err)
+		state.Put("error", err)
+		ui.Error(err.Error())
+		return multistep.ActionHalt
+	}
+
+	originalConfigFile, err := os.Open(config.ConfigFile)
+
+	if err != nil {
+		err := fmt.Errorf("Error opening config file: %s", err)
+		state.Put("error", err)
+		ui.Error(err.Error())
+		return multistep.ActionHalt
+	}
+
+	_, err = io.Copy(configFile, originalConfigFile)
+
+	commands := make([][]string, 4)
 	commands[0] = []string{
 		"lxc-stop", "--name", name,
 	}
@@ -31,13 +53,9 @@ func (s *stepExport) Run(state multistep.StateBag) multistep.StepAction {
 		"tar", "-C", containerDir, "--numeric-owner", "--anchored", "--exclude=./rootfs/dev/log", "-czf", outputPath, "./rootfs",
 	}
 	commands[2] = []string{
-		"curl", "-o", templateFile,
-		fmt.Sprintf("https://raw.githubusercontent.com/fgrehm/vagrant-lxc-base-boxes/master/conf/%s", config.Distribution),
+		"chmod", "+x", configFilePath,
 	}
 	commands[3] = []string{
-		"chmod", "+x", templateFile,
-	}
-	commands[4] = []string{
 		"sh", "-c", "chown $USER:`id -gn` " + filepath.Join(config.OutputDir, "*"),
 	}
 
