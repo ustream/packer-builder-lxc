@@ -1,7 +1,8 @@
 packer-builder-lxc
-==========
+==================
 
-Lxc builder for packer, with working provisioning.
+Lxc builder for packer, with working provisioning. Currently tested on debian wheezy, although ubuntu should work too.
+Lxc 1.0.0 is needed on debian, since lxc-attach is broken in previous versions. A backport deb can be created following [this guide](https://wiki.debian.org/SimpleBackportCreation). On debian you have to edit /etc/lxc/default.conf according to you network settings, if you want to do anything during provisioning that needs network access.
 
 Building
 ========
@@ -23,6 +24,8 @@ Add the executable to your packer config:
   }
 }
 ```
+
+
 
 Example builder config
 ======================
