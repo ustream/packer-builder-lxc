@@ -20,11 +20,20 @@ lxc.network.link=lxcbr0
 lxc.network.flags=up
 ```
 
+If your containers do not get an ip address from dhcp you need to turn off checksum offloading on the bridge:
+
+```/sbin/ethtool -K lxcbr0 tx off```
+
 If you're done with all of these you are ready to build containers on wheezy!
 
 ## Ubuntu
 
 Everything above saucy should be supported (saucy is tested). The default configuration is good to go!
+
+If your containers do not get an ip address from dhcp you need to turn off checksum offloading on the bridge:
+
+```/sbin/ethtool -K lxcbr0 tx off```
+
 
 Building from source
 ====================
