@@ -25,13 +25,14 @@ Add the executable to your packer config:
 }
 ```
 
+Builder config
+==============
 
-
-Example builder config
-======================
+Example:
 ```
     {
       "type": "lxc",
+      "config_file": "lxc/config",
       "template_name": "debian",
       "template_parameters": ["--arch", "amd64", "--release", "wheezy"],
       "template_environment_vars": [
@@ -39,6 +40,8 @@ Example builder config
       ]
     }
 ```
+
+The config file is an lxc config file which will be bundled with the machine. You can create your own or just grab the debian or ubuntu one from [this repo](https://github.com/fgrehm/vagrant-lxc-base-boxes/tree/master/conf).
 
 Example packer template
 =======================
