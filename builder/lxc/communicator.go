@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"syscall"
+	"strings"
 )
 
 type LxcAttachCommunicator struct {
@@ -19,19 +20,15 @@ type LxcAttachCommunicator struct {
 }
 
 func (c *LxcAttachCommunicator) Start(cmd *packer.RemoteCmd) error {
+	localCmd, err := c.Execute(cmd.Command)
 
-	log.Printf("Executing with lxc-attach in container: %s %s %s", c.ContainerName, c.RootFs, cmd.Command)
-	command, err := c.CmdWrapper(
-		fmt.Sprintf("sudo lxc-attach --name %s -- /bin/sh -c \"%s\"", c.ContainerName, cmd.Command))
 	if err != nil {
 		return err
 	}
 
-	localCmd := ShellCommand(command)
 	localCmd.Stdin = cmd.Stdin
 	localCmd.Stdout = cmd.Stdout
 	localCmd.Stderr = cmd.Stderr
-	log.Printf("Executing lxc-attach: %s %#v", localCmd.Path, localCmd.Args)
 	if err := localCmd.Start(); err != nil {
 		return err
 	}
@@ -105,4 +102,46 @@ func (c *LxcAttachCommunicator) Download(src string, w io.Writer) error {
 	}
 
 	return nil
+}
+
+func (c *LxcAttachCommunicator) Execute(commandString string) (*exec.Cmd, error) {
+	log.Printf("Executing with lxc-attach in container: %s %s %s", c.ContainerName, c.RootFs, commandString)
+	command, err := c.CmdWrapper(
+		fmt.Sprintf("sudo lxc-attach --name %s -- /bin/sh -c \"%s\"", c.ContainerName, commandString))
+	if err != nil {
+		return nil, err
+	}
+
+	localCmd := ShellCommand(command)
+	log.Printf("Executing lxc-attach: %s %#v", localCmd.Path, localCmd.Args)
+
+	return localCmd, nil
+}
+
+func (c *LxcAttachCommunicator) CheckInit() (string, error) {
+	log.Printf("Debug runlevel exec")
+	localCmd, err := c.Execute("/sbin/runlevel")
+
+	if err != nil {
+		return "", err
+	}
+
+	pr, _ := localCmd.StdoutPipe()
+	if err = localCmd.Start(); err != nil {
+		return "", err
+	}
+
+	output, err := ioutil.ReadAll(pr)
+
+	if err != nil {
+		return "", err
+	}
+
+	err = localCmd.Wait()
+
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(string(output)), nil
 }

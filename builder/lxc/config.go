@@ -4,6 +4,7 @@ import (
 	"github.com/mitchellh/packer/common"
 	"github.com/mitchellh/packer/packer"
 	"fmt"
+	"time"
 )
 
 type Config struct {
@@ -13,6 +14,8 @@ type Config struct {
 	OutputDir           string            `mapstructure:"output_directory"`
 	ContainerName       string            `mapstructure:"container_name"`
 	CommandWrapper      string            `mapstructure:"command_wrapper"`
+	RawInitTimeout      string            `mapstructure:"init_timeout"`
+	InitTimeout         time.Duration
 
 	tpl *packer.ConfigTemplate
 }
@@ -44,6 +47,15 @@ func NewConfig(raws ...interface{}) (*Config, error) {
 
 	if c.CommandWrapper == "" {
 		c.CommandWrapper = "{{.Command}}"
+	}
+
+	if c.RawInitTimeout == "" {
+		c.RawInitTimeout = "20s"
+	}
+
+	c.InitTimeout, err = time.ParseDuration(c.RawInitTimeout)
+	if err != nil {
+		errs = packer.MultiErrorAppend(errs, fmt.Errorf("Failed parsing init_timeout: %s", err))
 	}
 
 	if errs != nil && len(errs.Errors) > 0 {
