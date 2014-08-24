@@ -84,7 +84,8 @@ func (s *StepWaitInit) waitForInit(state multistep.StateBag, cancel <-chan struc
 
 		log.Printf("Current runlevel in container: '%s'", runlevel)
 
-		if runlevel == "N 3" {
+		targetRunlevel := fmt.Sprintf("N %d", config.TemplateConfig.TargetRunlevel)
+		if runlevel == targetRunlevel {
 			log.Printf("Container finished init.")
 			break
 		}

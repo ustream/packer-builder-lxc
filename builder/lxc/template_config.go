@@ -6,9 +6,10 @@ import (
 )
 
 type TemplateConfig struct {
-	Name       string   `mapstructure:"template_name"`
-	Parameters []string `mapstructure:"template_parameters"`
-	EnvVars    []string `mapstructure:"template_environment_vars"`
+	Name           string   `mapstructure:"template_name"`
+	Parameters     []string `mapstructure:"template_parameters"`
+	EnvVars        []string `mapstructure:"template_environment_vars"`
+	TargetRunlevel int      `mapstructure:"target_runlevel"`
 }
 
 func (c *TemplateConfig) Prepare(t *packer.ConfigTemplate) []error {
