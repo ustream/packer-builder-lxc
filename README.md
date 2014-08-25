@@ -71,7 +71,8 @@ Building wheezy on saucy:
       "template_environment_vars": [
         "MIRROR=http://http.debian.net/debian/",
         "SUITE=wheezy"
-      ]
+      ],
+      "target_runlevel": 3
     }
   ]
 }
@@ -92,7 +93,8 @@ Building wheezy on wheezy:
       "template_parameters": ["--arch", "amd64", "--release", "wheezy"],
       "template_environment_vars": [
         "MIRROR=http://http.debian.net/debian/"
-      ]
+      ],
+      "target_runlevel": 3
     }
   ],
   "provisioners": [
