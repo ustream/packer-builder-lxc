@@ -7,6 +7,7 @@ import (
 	"log"
 	"fmt"
 	"errors"
+	"strings"
 )
 
 
@@ -81,11 +82,12 @@ func (s *StepWaitInit) waitForInit(state multistep.StateBag, cancel <-chan struc
 		}
 
 		runlevel, _ := comm.CheckInit()
+		currentRunlevel := strings.Split(runlevel, " ")[1]
 
 		log.Printf("Current runlevel in container: '%s'", runlevel)
 
-		targetRunlevel := fmt.Sprintf("N %d", config.TemplateConfig.TargetRunlevel)
-		if runlevel == targetRunlevel {
+		targetRunlevel := fmt.Sprintf("%d", config.TemplateConfig.TargetRunlevel)
+		if currentRunlevel == targetRunlevel {
 			log.Printf("Container finished init.")
 			break
 		}
