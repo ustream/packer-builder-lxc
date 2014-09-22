@@ -56,7 +56,7 @@ func (c *LxcAttachCommunicator) Start(cmd *packer.RemoteCmd) error {
 	return nil
 }
 
-func (c *LxcAttachCommunicator) Upload(dst string, r io.Reader) error {
+func (c *LxcAttachCommunicator) Upload(dst string, r io.Reader, fi *os.FileInfo) error {
 	dst = filepath.Join(c.RootFs, dst)
 	log.Printf("Uploading to rootfs: %s", dst)
 	tf, err := ioutil.TempFile("", "packer-lxc-attach")
