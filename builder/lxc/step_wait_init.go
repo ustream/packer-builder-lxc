@@ -82,7 +82,10 @@ func (s *StepWaitInit) waitForInit(state multistep.StateBag, cancel <-chan struc
 		}
 
 		runlevel, _ := comm.CheckInit()
-		currentRunlevel := strings.Split(runlevel, " ")[1]
+		currentRunlevel := "unknown"
+		if arr := strings.Split(runlevel, " ") ; len(arr) >= 2 {
+			currentRunlevel = arr[1]
+		}
 
 		log.Printf("Current runlevel in container: '%s'", runlevel)
 
