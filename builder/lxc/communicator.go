@@ -80,7 +80,7 @@ func (c *LxcAttachCommunicator) UploadDir(dst string, src string, exclude []stri
 	// TODO: remove any file copied if it appears in `exclude`
 	dest := filepath.Join(c.RootFs, dst)
 	log.Printf("Uploading directory '%s' to rootfs '%s'", src, dest)
-	cpCmd, err := c.CmdWrapper(fmt.Sprintf("sudo cp -R %s %s", src, dest))
+	cpCmd, err := c.CmdWrapper(fmt.Sprintf("sudo cp -R %s/. %s", src, dest))
 	if err != nil {
 		return err
 	}
