@@ -57,7 +57,7 @@ func NewConfig(raws ...interface{}) (*Config, error) {
 		"config_file":      &c.ConfigFile,
 		"output_directory": &c.OutputDir,
 		"container_name":   &c.ContainerName,
-		"command_wrapper":  &c.CommandWrapper,
+		//"command_wrapper":  &c.CommandWrapper, It's expanded later, when command is run.
 		"init_timeout":     &c.RawInitTimeout,
 		"template_name":    &c.Name,
 		//"target_runlevel": &c.TargetRunlevel,
