@@ -35,7 +35,7 @@ func (s *stepLxcCreate) Run(state multistep.StateBag) multistep.StepAction {
 	commands[1] = []string{"touch", filepath.Join(rootfs, "tmp", ".tmpfs")}
 	commands[2] = []string{"lxc-start", "-d", "--name", name}
 
-	ui.Say("Creating containter...")
+	ui.Say("Creating container...")
 	for _, command := range commands {
 		log.Printf("Executing sudo command: %#v", command)
 		err := s.SudoCommand(command...)

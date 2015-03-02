@@ -59,7 +59,7 @@ func (s *stepExport) Run(state multistep.StateBag) multistep.StepAction {
 		"sh", "-c", "chown $USER:`id -gn` " + filepath.Join(config.OutputDir, "*"),
 	}
 
-	ui.Say("Exporting containter...")
+	ui.Say("Exporting container...")
 	for _, command := range commands {
 		err := s.SudoCommand(command...)
 		if err != nil {
