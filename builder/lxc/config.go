@@ -53,6 +53,41 @@ func NewConfig(raws ...interface{}) (*Config, error) {
 		c.RawInitTimeout = "20s"
 	}
 
+	templates := map[string]*string{
+		"config_file":      &c.ConfigFile,
+		"output_directory": &c.OutputDir,
+		"container_name":   &c.ContainerName,
+		//"command_wrapper":  &c.CommandWrapper, It's expanded later, when command is run.
+		"init_timeout":     &c.RawInitTimeout,
+		"template_name":    &c.Name,
+		//"target_runlevel": &c.TargetRunlevel,
+	}
+
+	for n, ptr := range templates {
+		var err error
+		*ptr, err = c.tpl.Process(*ptr, nil)
+		if err != nil {
+			errs = packer.MultiErrorAppend(
+				errs, fmt.Errorf("Error processing %s: %s", n, err))
+		}
+	}
+	for i, param := range c.Parameters {
+		var err error
+		c.Parameters[i], err = c.tpl.Process(param, nil)
+		if err != nil {
+			errs = packer.MultiErrorAppend(
+				errs, fmt.Errorf("Error processing template_parameters[%d]: %s", i, err))
+		}
+	}
+	for i, evar := range c.EnvVars {
+		var err error
+		c.EnvVars[i], err = c.tpl.Process(evar, nil)
+		if err != nil {
+			errs = packer.MultiErrorAppend(
+				errs, fmt.Errorf("Error processing template_environment_vars[%d]: %s", i, err))
+		}
+	}
+
 	c.InitTimeout, err = time.ParseDuration(c.RawInitTimeout)
 	if err != nil {
 		errs = packer.MultiErrorAppend(errs, fmt.Errorf("Failed parsing init_timeout: %s", err))
