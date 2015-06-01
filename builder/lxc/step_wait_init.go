@@ -1,15 +1,14 @@
 package lxc
 
 import (
+	"errors"
+	"fmt"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/packer"
-	"time"
 	"log"
-	"fmt"
-	"errors"
 	"strings"
+	"time"
 )
-
 
 type StepWaitInit struct {
 	WaitTimeout time.Duration
@@ -62,7 +61,7 @@ WaitLoop:
 func (s *StepWaitInit) Cleanup(multistep.StateBag) {
 }
 
-func (s *StepWaitInit) waitForInit(state multistep.StateBag, cancel <-chan struct{}) (error) {
+func (s *StepWaitInit) waitForInit(state multistep.StateBag, cancel <-chan struct{}) error {
 	config := state.Get("config").(*Config)
 	mountPath := state.Get("mount_path").(string)
 	wrappedCommand := state.Get("wrappedCommand").(CommandWrapper)
@@ -83,13 +82,13 @@ func (s *StepWaitInit) waitForInit(state multistep.StateBag, cancel <-chan struc
 
 		runlevel, _ := comm.CheckInit()
 		currentRunlevel := "unknown"
-		if arr := strings.Split(runlevel, " ") ; len(arr) >= 2 {
+		if arr := strings.Split(runlevel, " "); len(arr) >= 2 {
 			currentRunlevel = arr[1]
 		}
 
 		log.Printf("Current runlevel in container: '%s'", runlevel)
 
-		targetRunlevel := fmt.Sprintf("%d", config.TemplateConfig.TargetRunlevel)
+		targetRunlevel := fmt.Sprintf("%d", config.TargetRunlevel)
 		if currentRunlevel == targetRunlevel {
 			log.Printf("Container finished init.")
 			break

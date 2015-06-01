@@ -1,41 +1,45 @@
 package lxc
 
 import (
-	"github.com/mitchellh/packer/common"
-	"github.com/mitchellh/packer/packer"
 	"fmt"
+	"github.com/mitchellh/mapstructure"
+	"github.com/mitchellh/packer/common"
+	"github.com/mitchellh/packer/helper/config"
+	"github.com/mitchellh/packer/packer"
+	"github.com/mitchellh/packer/template/interpolate"
 	"time"
 )
 
 type Config struct {
 	common.PackerConfig `mapstructure:",squash"`
-	TemplateConfig      `mapstructure:",squash"`
-	ConfigFile          string            `mapstructure:"config_file"`
-	OutputDir           string            `mapstructure:"output_directory"`
-	ContainerName       string            `mapstructure:"container_name"`
-	CommandWrapper      string            `mapstructure:"command_wrapper"`
-	RawInitTimeout      string            `mapstructure:"init_timeout"`
+	ConfigFile          string   `mapstructure:"config_file"`
+	OutputDir           string   `mapstructure:"output_directory"`
+	ContainerName       string   `mapstructure:"container_name"`
+	CommandWrapper      string   `mapstructure:"command_wrapper"`
+	RawInitTimeout      string   `mapstructure:"init_timeout"`
+	Name                string   `mapstructure:"template_name"`
+	Parameters          []string `mapstructure:"template_parameters"`
+	EnvVars             []string `mapstructure:"template_environment_vars"`
+	TargetRunlevel      int      `mapstructure:"target_runlevel"`
 	InitTimeout         time.Duration
 
-	tpl *packer.ConfigTemplate
+	ctx interpolate.Context
 }
 
 func NewConfig(raws ...interface{}) (*Config, error) {
-	c := new(Config)
-	md, err := common.DecodeConfig(c, raws...)
-	if err != nil {
-		return nil, err
-	}
+	var c Config
 
-	c.tpl, err = packer.NewConfigTemplate()
+	var md mapstructure.Metadata
+	err := config.Decode(&c, &config.DecodeOpts{
+		Metadata:    &md,
+		Interpolate: true,
+	}, raws...)
 	if err != nil {
 		return nil, err
 	}
-	c.tpl.UserVars = c.PackerUserVars
 
 	// Accumulate any errors
-	errs := common.CheckUnusedConfig(md)
-	errs = packer.MultiErrorAppend(errs, c.TemplateConfig.Prepare(c.tpl)...)
+	var errs *packer.MultiError
 
 	if c.OutputDir == "" {
 		c.OutputDir = fmt.Sprintf("output-%s", c.PackerBuildName)
@@ -53,41 +57,6 @@ func NewConfig(raws ...interface{}) (*Config, error) {
 		c.RawInitTimeout = "20s"
 	}
 
-	templates := map[string]*string{
-		"config_file":      &c.ConfigFile,
-		"output_directory": &c.OutputDir,
-		"container_name":   &c.ContainerName,
-		//"command_wrapper":  &c.CommandWrapper, It's expanded later, when command is run.
-		"init_timeout":     &c.RawInitTimeout,
-		"template_name":    &c.Name,
-		//"target_runlevel": &c.TargetRunlevel,
-	}
-
-	for n, ptr := range templates {
-		var err error
-		*ptr, err = c.tpl.Process(*ptr, nil)
-		if err != nil {
-			errs = packer.MultiErrorAppend(
-				errs, fmt.Errorf("Error processing %s: %s", n, err))
-		}
-	}
-	for i, param := range c.Parameters {
-		var err error
-		c.Parameters[i], err = c.tpl.Process(param, nil)
-		if err != nil {
-			errs = packer.MultiErrorAppend(
-				errs, fmt.Errorf("Error processing template_parameters[%d]: %s", i, err))
-		}
-	}
-	for i, evar := range c.EnvVars {
-		var err error
-		c.EnvVars[i], err = c.tpl.Process(evar, nil)
-		if err != nil {
-			errs = packer.MultiErrorAppend(
-				errs, fmt.Errorf("Error processing template_environment_vars[%d]: %s", i, err))
-		}
-	}
-
 	c.InitTimeout, err = time.ParseDuration(c.RawInitTimeout)
 	if err != nil {
 		errs = packer.MultiErrorAppend(errs, fmt.Errorf("Failed parsing init_timeout: %s", err))
@@ -97,5 +66,5 @@ func NewConfig(raws ...interface{}) (*Config, error) {
 		return nil, errs
 	}
 
-	return c, nil
+	return &c, nil
 }

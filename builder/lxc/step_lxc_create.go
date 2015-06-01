@@ -1,14 +1,14 @@
 package lxc
 
 import (
-	"github.com/mitchellh/multistep"
-	"fmt"
-	"github.com/mitchellh/packer/packer"
 	"bytes"
-	"os/exec"
+	"fmt"
+	"github.com/mitchellh/multistep"
+	"github.com/mitchellh/packer/packer"
 	"log"
-	"strings"
+	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 type stepLxcCreate struct{}
@@ -28,8 +28,8 @@ func (s *stepLxcCreate) Run(state multistep.StateBag) multistep.StepAction {
 	}
 
 	commands := make([][]string, 3)
-	commands[0] = append(config.TemplateConfig.EnvVars, []string{"lxc-create", "-n", name, "-t", config.TemplateConfig.Name, "--"}...)
-	commands[0] = append(commands[0], config.TemplateConfig.Parameters...)
+	commands[0] = append(config.EnvVars, []string{"lxc-create", "-n", name, "-t", config.Name, "--"}...)
+	commands[0] = append(commands[0], config.Parameters...)
 	// prevent tmp from being cleaned on boot, we put provisioning scripts there
 	// todo: wait for init to finish before moving on to provisioning instead of this
 	commands[1] = []string{"touch", filepath.Join(rootfs, "tmp", ".tmpfs")}
@@ -65,7 +65,6 @@ func (s *stepLxcCreate) Cleanup(state multistep.StateBag) {
 		ui.Error(fmt.Sprintf("Error deleting virtual machine: %s", err))
 	}
 }
-
 
 func (s *stepLxcCreate) SudoCommand(args ...string) error {
 	var stdout, stderr bytes.Buffer
