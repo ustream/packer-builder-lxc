@@ -1,13 +1,15 @@
 package lxc
 
 import (
+	"errors"
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/common"
 	"github.com/mitchellh/packer/packer"
+	"github.com/mitchellh/packer/template/interpolate"
 	"log"
-	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
 )
 
 // The unique ID for this builder
@@ -33,11 +35,13 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 }
 
 func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packer.Artifact, error) {
+	if runtime.GOOS != "linux" {
+		return nil, errors.New("The lxc builder only works on linux environments.")
+	}
+
 	wrappedCommand := func(command string) (string, error) {
-		return b.config.tpl.Process(
-			b.config.CommandWrapper, &wrappedCommandTemplate{
-				Command: command,
-			})
+		b.config.ctx.Data = &wrappedCommandTemplate{Command: command}
+		return interpolate.Render(b.config.CommandWrapper, &b.config.ctx)
 	}
 
 	steps := []multistep.Step{
