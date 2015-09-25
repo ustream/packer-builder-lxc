@@ -110,14 +110,19 @@ Building wheezy on wheezy:
         "scripts/lxc/vagrant-lxc-fixes.sh"
       ]
     }
-  ]
+  ],
+  "post-processors": [
+    {
+      "type": "compress",
+      "output": "output-vagrant/wheezy64-lxc.box"
+    }
+  ],
 }
 ```
 
 Note the differences in template parameters/envvars!
 
-Vagrant publisher
-=================
+Vagrant publishing
+==================
 
-The basebox format will be finalized in [vagrant-lxc](https://github.com/fgrehm/vagrant-lxc) 1.0.0,
-then we'll try to get a patch into packer to support this builder in the vagrant publisher.
+The output artifact can be compressed with the compress publisher to create a working vagrant box (see example).

@@ -11,9 +11,15 @@ import (
 	"path/filepath"
 	"os"
 	"io"
+	"encoding/json"
 )
 
 type stepExport struct{}
+
+type Metadata struct {
+	Provider string `json:"provider"`
+	Version string  `json:"version"`
+}
 
 func (s *stepExport) Run(state multistep.StateBag) multistep.StepAction {
 	config := state.Get("config").(*Config)
@@ -24,6 +30,35 @@ func (s *stepExport) Run(state multistep.StateBag) multistep.StepAction {
 	containerDir := fmt.Sprintf("/var/lib/lxc/%s", name)
 	outputPath := filepath.Join(config.OutputDir, "rootfs.tar.gz")
 	configFilePath := filepath.Join(config.OutputDir, "lxc-config")
+	metadataFilePath := filepath.Join(config.OutputDir, "metadata.json")
+
+	metadata := Metadata{"lxc", "1.0.0"}
+	metadataFile, err := os.Create(metadataFilePath)
+
+	if err != nil {
+		err := fmt.Errorf("Error creating metadata file: %s", err)
+		state.Put("error", err)
+		ui.Error(err.Error())
+		return multistep.ActionHalt
+	}
+
+	metadataJson, err := json.Marshal(metadata)
+	if err != nil {
+		err := fmt.Errorf("Error marshaling metadata : %s", err)
+		state.Put("error", err)
+		ui.Error(err.Error())
+		return multistep.ActionHalt
+	}
+
+	_, err = metadataFile.Write(metadataJson)
+	metadataFile.Sync()
+
+	if err != nil {
+		err := fmt.Errorf("Error writing metadata file : %s", err)
+		state.Put("error", err)
+		ui.Error(err.Error())
+		return multistep.ActionHalt
+	}
 
 	configFile, err := os.Create(configFilePath)
 
