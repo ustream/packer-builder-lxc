@@ -50,7 +50,7 @@ Install dependencies:
 * [gox](https://github.com/mitchellh/gox)
 * [go-fs](https://github.com/mitchellh/go-fs)
 * [multistep](https://github.com/mitchellh/multistep)
-* [packer-guilder-lxc](https://github.com/ustream/packer-builder-lxc)
+* [packer-builder-lxc](https://github.com/ustream/packer-builder-lxc)
 
 ```bash
 go get github.com/mitchellh/gox
