@@ -19,6 +19,10 @@ type LxcAttachCommunicator struct {
 	CmdWrapper    CommandWrapper
 }
 
+func (c *LxcAttachCommunicator) DownloadDir(src string, dst string, exclude []string) error {
+	return fmt.Errorf("DownloadDir is not implemented for lxc")
+}
+
 func (c *LxcAttachCommunicator) Start(cmd *packer.RemoteCmd) error {
 	localCmd, err := c.Execute(cmd.Command)
 

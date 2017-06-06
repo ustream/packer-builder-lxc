@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/ustream/packer-builder-lxc/builder/lxc"
+	"github.com/JScott/packer-builder-lxc/builder/lxc"
 	"github.com/mitchellh/packer/packer/plugin"
 )
 
