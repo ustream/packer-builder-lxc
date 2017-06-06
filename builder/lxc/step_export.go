@@ -3,7 +3,7 @@ package lxc
 import (
 	"github.com/mitchellh/multistep"
 	"fmt"
-	"github.com/mitchellh/packer/packer"
+	"github.com/hashicorp/packer/packer"
 	"bytes"
 	"os/exec"
 	"log"
