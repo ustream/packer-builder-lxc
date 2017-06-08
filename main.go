@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/ustream/packer-builder-lxc/builder/lxc"
-	"github.com/mitchellh/packer/packer/plugin"
+	"github.com/hashicorp/packer/packer/plugin"
 )
 
 func main() {

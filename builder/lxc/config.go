@@ -2,12 +2,13 @@ package lxc
 
 import (
 	"fmt"
-	"github.com/mitchellh/mapstructure"
-	"github.com/mitchellh/packer/common"
-	"github.com/mitchellh/packer/helper/config"
-	"github.com/mitchellh/packer/packer"
-	"github.com/mitchellh/packer/template/interpolate"
 	"time"
+
+	"github.com/hashicorp/packer/common"
+	"github.com/hashicorp/packer/helper/config"
+	"github.com/hashicorp/packer/packer"
+	"github.com/hashicorp/packer/template/interpolate"
+	"github.com/mitchellh/mapstructure"
 )
 
 type Config struct {
@@ -17,6 +18,7 @@ type Config struct {
 	ContainerName       string   `mapstructure:"container_name"`
 	CommandWrapper      string   `mapstructure:"command_wrapper"`
 	RawInitTimeout      string   `mapstructure:"init_timeout"`
+	CloneSource         string   `mapstructure:"clone_container"`
 	Name                string   `mapstructure:"template_name"`
 	Parameters          []string `mapstructure:"template_parameters"`
 	EnvVars             []string `mapstructure:"template_environment_vars"`
